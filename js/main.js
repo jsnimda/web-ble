@@ -6,6 +6,11 @@ const terminalContainer = document.getElementById('terminal');
 const sendForm = document.getElementById('send-form');
 const inputField = document.getElementById('input');
 
+
+const SERVICE_UUID = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E".toLowerCase();
+const CHARACTERISTIC_UUID_RX = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E".toLowerCase();
+const CHARACTERISTIC_UUID_TX = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E".toLowerCase();
+
 // Helpers.
 const defaultDeviceName = 'Terminal';
 const terminalAutoScrollingLimit = terminalContainer.offsetHeight / 2;
@@ -39,12 +44,10 @@ const logToTerminal = (message, type = '') => {
 //var serviveUuid = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
 //var characteristicUuid  = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
 
-var serviveUuid = 0xFFE0
-var characteristicUuid = 0xFFE1
+// var serviveUuid = 0xFFE0
+// var characteristicUuid = 0xFFE1
 
-const terminal = new BluetoothTerminal(serviveUuid,characteristicUuid,
-
-'\n','\n');
+const terminal = new BluetoothTerminal(SERVICE_UUID,CHARACTERISTIC_UUID_TX,CHARACTERISTIC_UUID_RX);
 
 
 //const terminal = new BluetoothTerminal();

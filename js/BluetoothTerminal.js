@@ -10,7 +10,7 @@ class BluetoothTerminal {
    * @param {string} [sendSeparator='\n'] - Send separator
    */
   constructor(serviceUuid = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E", characteristicUuidTx = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E", characteristicUuidRx = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E",
-      receiveSeparator = '\n', sendSeparator = '\n') {
+    receiveSeparator = '\n', sendSeparator = '\n') {
     // Used private variables.
     this._receiveBuffer = ''; // Buffer containing not separated data.
     this._maxCharacteristicValueLength = 20; // Max characteristic value length.
@@ -22,7 +22,7 @@ class BluetoothTerminal {
     // Bound functions used to add and remove appropriate event handlers.
     this._boundHandleDisconnection = this._handleDisconnection.bind(this);
     this._boundHandleCharacteristicValueChanged =
-        this._handleCharacteristicValueChanged.bind(this);
+      this._handleCharacteristicValueChanged.bind(this);
 
     // Configure with specified parameters.
     this.setServiceUuid(serviceUuid);
@@ -38,7 +38,7 @@ class BluetoothTerminal {
    */
   setServiceUuid(uuid) {
     if (!Number.isInteger(uuid) &&
-        !(typeof uuid === 'string' || uuid instanceof String)) {
+      !(typeof uuid === 'string' || uuid instanceof String)) {
       throw new Error('UUID type is neither a number nor a string');
     }
 
@@ -55,7 +55,7 @@ class BluetoothTerminal {
    */
   setCharacteristicUuidTx(uuid) {
     if (!Number.isInteger(uuid) &&
-        !(typeof uuid === 'string' || uuid instanceof String)) {
+      !(typeof uuid === 'string' || uuid instanceof String)) {
       throw new Error('UUID type is neither a number nor a string');
     }
 
@@ -68,7 +68,7 @@ class BluetoothTerminal {
 
   setCharacteristicUuidRx(uuid) {
     if (!Number.isInteger(uuid) &&
-        !(typeof uuid === 'string' || uuid instanceof String)) {
+      !(typeof uuid === 'string' || uuid instanceof String)) {
       throw new Error('UUID type is neither a number nor a string');
     }
 
@@ -131,7 +131,7 @@ class BluetoothTerminal {
 
     if (this._characteristicTx) {
       this._characteristicTx.removeEventListener('characteristicvaluechanged',
-          this._boundHandleCharacteristicValueChanged);
+        this._boundHandleCharacteristicValueChanged);
       this._characteristicTx = null;
     }
 
@@ -154,8 +154,8 @@ class BluetoothTerminal {
    *                   rejected if something went wrong
    */
   send(data) {
-	  
-	  
+
+
     // Convert data to the string using global object.
     data = String(data || '');
 
@@ -168,7 +168,7 @@ class BluetoothTerminal {
 
     // Split data to chunks by max characteristic value length.
     const chunks = this.constructor._splitByLength(data,
-        this._maxCharacteristicValueLength);
+      this._maxCharacteristicValueLength);
 
     // Return rejected promise immediately if there is no connected device.
     if (!this._characteristicRx) {
@@ -179,7 +179,7 @@ class BluetoothTerminal {
     let promise = this._writeToCharacteristic(this._characteristicRx, chunks[0]);
 
     // Iterate over chunks if there are more than one of it.
-	
+
     for (let i = 1; i < chunks.length; i++) {
       // Chain new promise.
       promise = promise.then(() => new Promise((resolve, reject) => {
@@ -190,11 +190,11 @@ class BluetoothTerminal {
 
         // Write chunk to the characteristic and resolve the promise.
         this._writeToCharacteristic(this._characteristicRx, chunks[i]).
-            then(resolve).
-            catch(reject);
+          then(resolve).
+          catch(reject);
       }));
     }
- 
+
     return promise;
   }
 
@@ -218,12 +218,12 @@ class BluetoothTerminal {
    */
   _connectToDevice(device) {
     return (device ? Promise.resolve(device) : this._requestBluetoothDevice()).
-        then((device) => this._connectDeviceAndCacheCharacteristic(device)).
-        then((characteristics) => this._startNotifications(characteristics[0])).
-        catch((error) => {
-          this._log(error);
-          return Promise.reject(error);
-        });
+      then((device) => this._connectDeviceAndCacheCharacteristic(device)).
+      then((characteristics) => this._startNotifications(characteristics[0])).
+      catch((error) => {
+        this._log(error);
+        return Promise.reject(error);
+      });
   }
 
   /**
@@ -239,11 +239,11 @@ class BluetoothTerminal {
     this._log('Disconnecting from "' + device.name + '" bluetooth device...');
 
     device.removeEventListener('gattserverdisconnected',
-        this._boundHandleDisconnection);
+      this._boundHandleDisconnection);
 
     if (!device.gatt.connected) {
       this._log('"' + device.name +
-          '" bluetooth device is already disconnected');
+        '" bluetooth device is already disconnected');
       return;
     }
 
@@ -260,30 +260,30 @@ class BluetoothTerminal {
   _requestBluetoothDevice() {
 
     this._log('Requesting bluetooth device... with service1 ' + this._serviceUuid);
-	
-    return navigator.bluetooth.requestDevice({
-		
-	  filters: [{
-        name: 'ESP32'
-      }],
-      optionalServices: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e',
-	  0xFFE0
-	  ]
 
-    }).
-	
- 
-	
-	//services: ['c48e6067-5295-48d3-8d5c-0395f61792b1']
-        then((device) => {
-          this._log('"' + device.name + '" bluetooth device selected');
+    let requestDeviceOptions = {
+      filters: [],
+      // optionalServices: [SERVICE_UUID]
+      optionalServices: [this._serviceUuid]
+    };
+    for (let i = 32; i <= 126; i++) {
+      requestDeviceOptions.filters.push({ namePrefix: String.fromCharCode(i) });
+    }
+    
+    return navigator.bluetooth.requestDevice(requestDeviceOptions).
 
-          this._device = device; // Remember device.
-          this._device.addEventListener('gattserverdisconnected',
-              this._boundHandleDisconnection);
 
-          return this._device;
-        });
+
+      //services: ['c48e6067-5295-48d3-8d5c-0395f61792b1']
+      then((device) => {
+        this._log('"' + device.name + '" bluetooth device selected');
+
+        this._device = device; // Remember device.
+        this._device.addEventListener('gattserverdisconnected',
+          this._boundHandleDisconnection);
+
+        return this._device;
+      });
   }
 
   /**
@@ -301,26 +301,26 @@ class BluetoothTerminal {
     this._log('Connecting to GATT server...');
 
     return device.gatt.connect().
-        then((server) => {
-          this._log('GATT server connected', 'Getting service...');
+      then((server) => {
+        this._log('GATT server connected', 'Getting service...');
 
-          return server.getPrimaryService(this._serviceUuid);
-        }).
-        then((service) => {
-          this._log('Service found', 'Getting characteristic...');
-          this._service = service;
-          return this._service.getCharacteristic(this._characteristicUuidTx);
-        }).
-        then((characteristicTx) => {
-          this._log('CharacteristicTx found');
-          this._characteristicTx = characteristicTx; // Remember characteristic.
-          return this._service.getCharacteristic(this._characteristicUuidRx);
-        }).
-        then((characteristicRx) => {
-          this._log('CharacteristicRx found');
-          this._characteristicRx = characteristicRx; // Remember characteristic.
-          return [this._characteristicTx, this._characteristicRx];
-        });
+        return server.getPrimaryService(this._serviceUuid);
+      }).
+      then((service) => {
+        this._log('Service found', 'Getting characteristic...');
+        this._service = service;
+        return this._service.getCharacteristic(this._characteristicUuidTx);
+      }).
+      then((characteristicTx) => {
+        this._log('CharacteristicTx found');
+        this._characteristicTx = characteristicTx; // Remember characteristic.
+        return this._service.getCharacteristic(this._characteristicUuidRx);
+      }).
+      then((characteristicRx) => {
+        this._log('CharacteristicRx found');
+        this._characteristicRx = characteristicRx; // Remember characteristic.
+        return [this._characteristicTx, this._characteristicRx];
+      });
   }
 
   /**
@@ -333,12 +333,12 @@ class BluetoothTerminal {
     this._log('Starting notifications...');
 
     return characteristic.startNotifications().
-        then(() => {
-          this._log('Notifications started');
+      then(() => {
+        this._log('Notifications started');
 
-          characteristic.addEventListener('characteristicvaluechanged',
-              this._boundHandleCharacteristicValueChanged);
-        });
+        characteristic.addEventListener('characteristicvaluechanged',
+          this._boundHandleCharacteristicValueChanged);
+      });
   }
 
   /**
@@ -351,12 +351,12 @@ class BluetoothTerminal {
     this._log('Stopping notifications...');
 
     return characteristic.stopNotifications().
-        then(() => {
-          this._log('Notifications stopped');
+      then(() => {
+        this._log('Notifications stopped');
 
-          characteristic.removeEventListener('characteristicvaluechanged',
-              this._boundHandleCharacteristicValueChanged);
-        });
+        characteristic.removeEventListener('characteristicvaluechanged',
+          this._boundHandleCharacteristicValueChanged);
+      });
   }
 
   /**
@@ -368,11 +368,11 @@ class BluetoothTerminal {
     const device = event.target;
 
     this._log('"' + device.name +
-        '" bluetooth device disconnected, trying to reconnect...');
+      '" bluetooth device disconnected, trying to reconnect...');
 
     this._connectDeviceAndCacheCharacteristic(device).
-        then((characteristic) => this._startNotifications(characteristic)).
-        catch((error) => this._log(error));
+      then((characteristic) => this._startNotifications(characteristic)).
+      catch((error) => this._log(error));
   }
 
   /**
@@ -381,13 +381,13 @@ class BluetoothTerminal {
    * @private
    */
   _handleCharacteristicValueChanged(event) {
-	  
+
     const value = new TextDecoder().decode(event.target.value);
 
     for (const c of value) {
       if (c === this._receiveSeparator) {
         const data = this._receiveBuffer.trim();
-		
+
         this._receiveBuffer = '';
 
         if (data) {
