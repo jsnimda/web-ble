@@ -369,6 +369,14 @@ class BluetoothTerminal {
     const device = event.target;
 
     this._log('"' + device.name +
+      '" bluetooth device disconnected, please manual reconnect');
+
+    return;
+
+    // TODO: enanble auto reconnect
+    // Fix here: TypeError: characteristic.startNotifications is not a function
+
+    this._log('"' + device.name +
       '" bluetooth device disconnected, trying to reconnect...');
 
     this._connectDeviceAndCacheCharacteristic(device).
