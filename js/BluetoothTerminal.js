@@ -12,6 +12,7 @@ class BluetoothTerminal {
   constructor(serviceUuid = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E", characteristicUuidTx = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E", characteristicUuidRx = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E",
     receiveSeparator = '\n', sendSeparator = '\n') {
     // Used private variables.
+    // TODO: handle UTF-8
     this._receiveBuffer = ''; // Buffer containing not separated data.
     this._maxCharacteristicValueLength = 20; // Max characteristic value length.
     this._device = null; // Device object cache.
@@ -407,7 +408,9 @@ class BluetoothTerminal {
    * @private
    */
   _writeToCharacteristic(characteristic, data) {
-    let ret = characteristic.writeValue(new TextEncoder().encode(data));
+    // let ret = characteristic.writeValue(new TextEncoder().encode(data));
+    // let ret = characteristic.writeValueWithResponse(new TextEncoder().encode(data));
+    let ret = characteristic.writeValueWithoutResponse(new TextEncoder().encode(data));
     return ret;
   }
 
